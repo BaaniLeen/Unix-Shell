@@ -7,12 +7,36 @@
 #define WHITE  "\x1B[37m"
 #define CYAN  "\x1B[36m"
 
+#define HISTORY_COUNT 20
+
+int history(char *hist[], int current)
+{
+    int i = current;
+    int hist_num = 1;
+    
+    do {
+        if (hist[i]) {
+            printf("%4d  %s\n", hist_num, hist[i]);
+            hist_num++;
+        }
+        
+        i = (i + 1) % HISTORY_COUNT;
+        
+    } while (i != current);
+    
+    return 0;
+}
+
 int main()
 {
 	char instr[1024],path[30],cwd[1024],user_name[1024];
 	char *argv[200],src_dir,dest_dir,final_dir;
 	char *common_path = "/bin/";
-	int argc;
+	int argc,i,current=0;
+    char *hist[HISTORY_COUNT];
+    
+    for (i=0; i<HISTORY_COUNT;i++)
+        hist[i] = NULL;
 
 	// system("color 0");
 
@@ -28,24 +52,31 @@ int main()
 		{
 			getlogin_r(user_name,sizeof(user_name));
 			printf("%s@My_Shell",user_name);
-		}		
+		}
 
 
 		if(getcwd(cwd,sizeof(cwd))!=NULL)
 		{
 			printf(":%s$", cwd);
-		}	
+		}
 
 		/*Input the Instruction*/
 		printf("%s",CYAN);
-		
+
 		if (!fgets(instr,1024,stdin))
 			break;
 
 		int length = strlen(instr);
+        /* Removing the \n from fgets */
 		if(instr[length-1]=='\n')
 			instr[length-1]='\0';
 
+        free(hist[current]);
+        
+        hist[current]=strdup(instr);
+        
+        current=(current+1) % HISTORY_COUNT;
+        
 		char* token;
 		token = strtok(instr," ");
 		int i;
@@ -57,7 +88,7 @@ int main()
 		argv[i]=NULL;
 		argc=i;
 
-		/*If the instruction is exit or cd*/
+		/* Internal commands - exit, cd, pwd, echo */
 		if (strcmp(instr,"exit")==0)
 			break;
 		if (!strcmp(argv[0], "cd")){
@@ -66,18 +97,35 @@ int main()
             chdir(cwd);
             continue;
         }
-
+        if (!strcmp(argv[0], "pwd")){
+            getcwd(cwd,sizeof(cwd));
+            printf("%s\n",cwd);
+            continue;
+        }
+        if (!strcmp(argv[0], "echo")){
+            int i;
+            for(i = 1; argv[i]!=NULL;i++)
+            {
+                printf("%s ",argv[i]);
+            }
+            printf("\n");
+            continue;
+        }
+        if(!strcmp(argv[0], "history")){
+            history(hist, current);
+            continue;
+        }
     	//Make the path as "/bin/<program_name>"
     	strcpy(path,common_path);
     	strcat(path,argv[0]);		//add the location of the program
-	
+
     	int status; //Denotes the sttaus of the child process
 
     	int pid = fork();
 
     	if(pid == -1)
-    	{ 
-    		printf("Can't fork a process.\n"); break; 
+    	{
+    		printf("Can't fork a process.\n"); break;
     	}
     	else if(pid==0)
     	{
@@ -102,3 +150,6 @@ int main()
     	}
 	}
 }
+
+//References : STackOverflow
+  //              http://www.cs.ecu.edu/karl/4630/sum01/example1.html
