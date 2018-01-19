@@ -9,21 +9,22 @@
 
 #define HISTORY_COUNT 20
 
-int history(char *hist[], int current)
+char *hist[HISTORY_COUNT];
+
+int history(int current)
 {
     int i = current;
     int hist_num = 1;
-    
     do {
         if (hist[i]) {
             printf("%4d  %s\n", hist_num, hist[i]);
             hist_num++;
         }
-        
+
         i = (i + 1) % HISTORY_COUNT;
-        
+
     } while (i != current);
-    
+
     return 0;
 }
 
@@ -33,16 +34,12 @@ int main()
 	char *argv[200],src_dir,dest_dir,final_dir;
 	char *common_path = "/bin/";
 	int argc,i,current=0;
-    char *hist[HISTORY_COUNT];
-    
+
     for (i=0; i<HISTORY_COUNT;i++)
         hist[i] = NULL;
 
-	// system("color 0");
-
 	while(1)
 	{
-
 		/*Display the Username@My_Shell:$<Current Directory>*/
 		printf("%s",GREEN);
 
@@ -54,11 +51,10 @@ int main()
 			printf("%s@My_Shell",user_name);
 		}
 
-
-		if(getcwd(cwd,sizeof(cwd))!=NULL)
-		{
-			printf(":%s$", cwd);
-		}
+		// if(getcwd(cwd,sizeof(cwd))!=NULL)
+		// {
+		// 	printf(":%s$", cwd);
+		// }
 
 		/*Input the Instruction*/
 		printf("%s",CYAN);
@@ -67,16 +63,17 @@ int main()
 			break;
 
 		int length = strlen(instr);
-        /* Removing the \n from fgets */
+
+    /* Removing the \n from fgets */
 		if(instr[length-1]=='\n')
 			instr[length-1]='\0';
 
         free(hist[current]);
-        
+
         hist[current]=strdup(instr);
-        
+
         current=(current+1) % HISTORY_COUNT;
-        
+
 		char* token;
 		token = strtok(instr," ");
 		int i;
@@ -89,12 +86,15 @@ int main()
 		argc=i;
 
 		/* Internal commands - exit, cd, pwd, echo */
+        
 		if (strcmp(instr,"exit")==0)
 			break;
+        /*cd takes care of invalid directory and file exception*/
 		if (!strcmp(argv[0], "cd")){
-			strcat(cwd,"/");
-			strcat(cwd,argv[1]);
-            chdir(cwd);
+            if(chdir(argv[1])==0)
+                chdir(argv[1]);
+            else
+                printf("Invalid directory or file.\n");
             continue;
         }
         if (!strcmp(argv[0], "pwd")){
@@ -112,7 +112,7 @@ int main()
             continue;
         }
         if(!strcmp(argv[0], "history")){
-            history(hist, current);
+            history(current);
             continue;
         }
     	//Make the path as "/bin/<program_name>"
