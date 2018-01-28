@@ -1,0 +1,49 @@
+From the initial directory type the following to set up some test env:
+echo "some text" > abc.txt
+
+----
+date
+date --v
+date -d "Jan 9"
+
+ls
+ls -a
+ls -A
+
+mkdir newDir
+mkdir -v newDir2
+
+rm -f newDir
+rm -i abc.txt
+
+cat Makefile
+cat -n Makefile
+cat -u Makefile
+
+echo -n Hello World
+echo -E Hello\tWorld
+
+cd ..
+pwd
+cd ./src
+
+history
+
+exit
+
+
+----------------------------------------------------------------------------
+
+Bugs handled
+
+cd : cd- leads back to the home directory
+     cd g1jhgg - Invalid Directory
+
+rm : rm - too few arguments
+     rm : Cannot remove file. No such file or directory found.
+
+Mkdir : made multiple files in a single command
+
+Date : handled space separated string as input for -d
+
+Echo : echo prints a blank line
